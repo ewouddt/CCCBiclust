@@ -1,0 +1,33 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+
+## Installing the CCCBiclust Package
+
+```{r, eval=FALSE,echo=TRUE}
+install.packages("devtools") # If not yet installed on your R Version
+devtools::install_github("hadley/devtools") # Only run this if your currently installed 
+                                            # devtools version is <= 1.12 (recursive dependencies bug)
+
+devtools::install_github("ewouddt/CCCBiclust")
+```
+
+Should the installation of `CCCBiclust` or `devtools::install_github("hadley/devtools")` throw an error, please install the dependencies manually, then try:
+```{r, eval=FALSE,echo=TRUE}
+install.packages(c("flexclust","biclust"))
+devtools::install_github("ewouddt/CCCBiclust")
+```
+
+
+
