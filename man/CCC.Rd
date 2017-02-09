@@ -9,7 +9,7 @@ CCC(matrix, overlap = 0.1)
 \arguments{
 \item{matrix}{The input matrix in which the columns are ordered by time.}
 
-\item{overlap}{Numeric in ]0,1[] containing the maximum percentage of overlapping allowed. The \code{info} slot will contain a vector which filters the discovered Biclusters based on this value.}
+\item{overlap}{Numeric in ]0,1[ containing the maximum percentage of overlapping allowed. The \code{info} slot will contain a logical vector which can filter the biclusters which overlap more than \code{overlap*100} percent.}
 }
 \value{
 A Biclust S4 Class object containing extra information of the CCC algorithm result in the \code{info} slot.

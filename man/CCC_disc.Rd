@@ -17,6 +17,9 @@ Returns a discretized matrix (see Description)
 \description{
 Discretization procedure proposed by Ji and Tan (see References). A \code{M x N} input matrix results in a \code{M x (N-1)} discretized matrix.
 }
+\author{
+Ewoud De Troyer
+}
 \references{
 L. Ji and K. Tan. Mining gene expression data for positive and negative co-regulated gene clusters. Bioinformatics, 20(16):2711-2718, 2004.
 

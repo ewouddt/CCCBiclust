@@ -2,6 +2,7 @@
 
 export(CCC)
 export(CCC_disc)
+export(eCCC_ext)
 export(info)
 import(biclust)
 importFrom(methods,new)

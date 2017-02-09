@@ -4,7 +4,7 @@
 \alias{info}
 \title{Filter CCCinfo in info slot of CCC Result}
 \usage{
-info(resbic, method = "none", alpha = 0.01, filter = FALSE)
+info(resbic, method = "none", alpha = 0.01, filter_overlap = FALSE)
 }
 \arguments{
 \item{resbic}{Result from CCC.}
@@ -13,12 +13,15 @@ info(resbic, method = "none", alpha = 0.01, filter = FALSE)
 
 \item{alpha}{Significance level.}
 
-\item{filter}{Filter Bicluster results based on overlap set in CCC algorithm.}
+\item{filter_overlap}{Filter Bicluster results based on overlap set in CCC algorithm.}
 }
 \value{
 Returns a filtered and ordered CCCinfo (info slot of CCC result)
 }
 \description{
 Compute adjusted p-values and order biclusters based on them.
+}
+\author{
+Ewoud De Troyer
 }
 

@@ -38,6 +38,7 @@ NULL
 #' @param threshold Threshold for second step in discretization procedure.
 #' @references L. Ji and K. Tan. Mining gene expression data for positive and negative co-regulated gene clusters. Bioinformatics, 20(16):2711-2718, 2004.
 #' @references L. Ji and K. Tan. Identifying time-lagged gene clusters using gene expression data. Bioinformatics, 21(4):509-516, 2005.
+#' @author Ewoud De Troyer
 #' @return Returns a discretized matrix (see Description)
 #' @export
 CCC_disc <- function(matrix,threshold=1){
@@ -45,6 +46,9 @@ CCC_disc <- function(matrix,threshold=1){
   if(class(matrix)!="matrix"){stop("matrix should be a matrix")}
   if(is.null(rownames(matrix))){rownames(matrix) <- paste0("Row",c(1:nrow(matrix)))}
   if(is.null(colnames(matrix))){colnames(matrix) <- paste0("Col",c(1:ncol(matrix)))}
+  
+  # No duplicate row names allowed!
+  if(sum(table(rownames(matrix))>1)){stop("No duplicate row names allowed!")}
   
   if(threshold<=0){"threshold should be greater than 0"}
   
@@ -97,17 +101,18 @@ CCC_disc <- function(matrix,threshold=1){
 #' @param resbic Result from CCC.
 #' @param method Adjust p-values for multiplicity. Can be one of the following: \code{c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none")}.
 #' @param alpha Significance level.
-#' @param filter Filter Bicluster results based on overlap set in CCC algorithm.
+#' @param filter_overlap Filter Bicluster results based on overlap set in CCC algorithm.
+#' @author Ewoud De Troyer
 #' @return Returns a filtered and ordered CCCinfo (info slot of CCC result)
 #' @export
-info <- function(resbic,method="none",alpha=0.01 ,filter=FALSE){
+info <- function(resbic,method="none",alpha=0.01 ,filter_overlap=FALSE){
   
   if(class(resbic)!="Biclust"){stop("resbic is not a Biclust object")}
   if(resbic@Parameters$Method!="CCC"){stop("resbic is not a result from the CCC algorithm")}
   if(!("CCCinfo"%in%names(resbic@info))){stop("CCCinfo not available in info slot")}
 
-  if(filter){
-    out <- resbic@info$CCCinfo[resbic@info$CCCinfo$filter,c(1,2)]
+  if(filter_overlap){
+    out <- resbic@info$CCCinfo[resbic@info$CCCinfo$filter_overlap,c(1,2)]
   }else{
     out <- resbic@info$CCCinfo[,c(1,2)]
   }
