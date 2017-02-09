@@ -260,13 +260,13 @@ eCCC_ext <- function(matrix,minr=1,minc=1,maxErrors=1,overlap=0.1,missings="allo
   resultloc <- dirname(matrixloc)
   
   # Java file location
-  # javaloc <- paste0("\"",find.package("CCCBiclust")[1],"/java/Test_AMB_E_CCC_Biclustering_Extended.jar\"")
+  javaloc <- paste0("\"",find.package("CCCBiclust")[1],"/java/Test_AMB_E_CCC_Biclustering_Extended.jar\"")
   
   
   # Java command and execution
   current_wd <- getwd()
-  javaloc <- paste0("\"",current_wd,"/inst/java/Test_AMB_E_CCC_Biclustering_Extended.jar\"")
-  javaloc <- gsub("/","\\\\",javaloc)
+  # javaloc <- paste0("\"",current_wd,"/inst/java/Test_AMB_E_CCC_Biclustering_Extended.jar\"")
+  # javaloc <- gsub("/","\\\\",javaloc)
   
   
   setwd(resultloc)
