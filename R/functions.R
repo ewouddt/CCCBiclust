@@ -1,5 +1,5 @@
-### TO DO: TRY LOWER MINR/MINC for eCCC!!
-### Add ngenes & nconditions to CCCinfo + adapt info functions
+### TO DO: TRY LOWER MINR/MINC for eCCC!! + check if switching rows gives different results
+
 
 
 
@@ -193,9 +193,9 @@ CCC2biclust <- function(loc="",nRows,nCols,row_names,col_names,call){
 
 
 
-#' @title The eCCC Algorithm
+#' @title The Extended e-CCC Algorithm
 #' 
-#' @description A R-wrapper which directly calls the original Java code for the eCCC algorithm (\url{http://kdbio.inesc-id.pt/software/e-ccc-biclustering/}) and transforms it to the output format of the \code{Biclust} R package.
+#' @description A R-wrapper which directly calls the original Java code for the Extended e-CCC algorithm (\url{http://kdbio.inesc-id.pt/software/e-ccc-biclustering/}) and transforms it to the output format of the \code{Biclust} R package.
 #' 
 #' @details PLACEHOLDER
 #' @author Ewoud De Troyer
@@ -220,12 +220,14 @@ CCC2biclust <- function(loc="",nRows,nCols,row_names,col_names,call){
 #' the alphabet. Since the alphabet {D,N,U} is used in the predefined discretization step provided in this version 
 #' of the prototype, the number of neighbours used in the restricted errors extension can only be equal to 1.
 #' 
-#' @return A Biclust S4 Class object containing extra information of the CCC algorithm result in the \code{info} slot.
+#' @return A Biclust S4 Class object containing extra information of the e-CCC algorithm result in the \code{info} slot.
 #' 
 #' @examples 
 #' \dontrun{
 #' data(heatdata)
 #' out <- eCCC_ext(heatdata,minr=3,minc=2) 
+#' eCCCinfo(out,filter="Bonf0.01")
+#' out@info$eCCCpatterns$BC53[1:10,]
 #' }
 eCCC_ext <- function(matrix,minr=1,minc=1,maxErrors=1,overlap=0.1,missings="allow",anticorrelation=FALSE,restrictedErrors=FALSE){
   call <- match.call()
@@ -473,7 +475,116 @@ eCCCext2biclust <- function(loc="",matrixloc,nRows,nCols,row_names,col_names,cal
 
 
 
+
+
+#' @title The e-CCC Algorithm
+#' 
+#' @description A R-wrapper which directly calls the original Java code for the e-CCC algorithm (\url{http://kdbio.inesc-id.pt/software/e-ccc-biclustering/}) and transforms it to the output format of the \code{Biclust} R package.
+#' 
+#' @details PLACEHOLDER
+#' @author Ewoud De Troyer
+#' 
+#' @references Sara C. Madeira and Arlindo L. Oliveira, "A polynomial time biclustering algorithm for finding genes with approximate expression patterns in gene expression time series", Algorithms for Molecular Biology 2009, 4:8 (4 June 2009)
+#' 
+#' @export
+#' @param matrix The input matrix in which the columns are ordered by time.
+#' @param minr Integer containing the row quorum (= minimum number of genes allowed in e-CCC-Biclusters).
+#' @param minc Integer containing the column quorum (= minimum number of contiguous time points allowed in e-CCC-Biclusters).
+#' @param maxErrors Integer containing the amount of errors allowed, per gene, in the e-CCC-Biclustering algorithm (value of e).
+#' @param overlap Numeric in ]0,1[ containing the maximum percentage of overlapping allowed. The \code{info} slot will contain a logical vector which can filter the biclusters which overlap more than \code{overlap*100} percent. 
+
+#' @return A Biclust S4 Class object containing extra information of the e-CCC algorithm result in the \code{info} slot.
+#' 
+#' @examples 
+#' \dontrun{
+#' data(heatdata)
+#' out <- eCCC(heatdata,minr=3,minc=2) 
+#' eCCCinfo(out,filter="Bonf0.01")
+#' out@info$eCCCpatterns$BC53[1:10,]
+#' }
 eCCC <- function(matrix,minr=1,minc=1,maxErrors=1,overlap=0.1){
+  call <- match.call()
+  
+  # Check parameters
+  if(minr<1){stop("minr should be larger than 1")}
+  minr <- as.integer(minr)
+  if(minc<1){stop("minc should be larger than 1")}
+  minc <- as.integer(minc)
+  if(maxErrors<0){stop("maxErrors should be larger than 0")}
+  maxErrors <- as.integer(maxErrors)
+  if(!(overlap>0 & overlap<1)){stop("overlap needs to be in ]0,1[ interval")}
+  
+  # Check if matrix is matrix
+  if(class(matrix)!="matrix"){stop("matrix parameter should contain a matrix object",call.=FALSE)}
+  
+  # Add row- and column names if not available
+  if(is.null(rownames(matrix))){rownames(matrix) <- paste0("Row",c(1:nrow(matrix)))}
+  if(is.null(colnames(matrix))){colnames(matrix) <- paste0("Col",c(1:ncol(matrix)))}
+  
+  # No duplicate row names allowed!
+  if(sum(table(rownames(matrix))>1)){stop("No duplicate row names allowed!")}
+  
+  # Transform matrix to data frame
+  matrixdf <- as.data.frame(matrix)
+  matrixdf <- cbind(data.frame(GENES=rownames(matrixdf)),matrixdf)
+  rownames(matrixdf) <- NULL
+  
+  # Make a txt file containing the matrix
+  matrixloc <- tempfile("matrixloc",fileext=".txt") 
+  write.table(matrixdf,file=matrixloc,sep="\t",quote=FALSE,row.names=FALSE,na="")
   
   
+  # Result location
+  resultloc <- dirname(matrixloc)
+  
+  # Java file location
+  javaloc <- paste0("\"",find.package("CCCBiclust")[1],"/java/Test_AMB_E_CCC_Biclustering.jar\"")
+  
+  
+  # Java command and execution
+  current_wd <- getwd()
+  # javaloc <- paste0("\"",current_wd,"/inst/java/Test_AMB_E_CCC_Biclustering_Extended.jar\"")
+  # javaloc <- gsub("/","\\\\",javaloc)
+  
+  
+  setwd(resultloc)
+  command <- paste("java -jar -Xss50M -Xms1024M -Xmx1024M",javaloc,matrixloc,maxErrors,minr,minc,overlap)
+
+  out_command <- tryCatch({
+    system(command)
+  },warning=function(x){return("WARNING")},error=function(x){return("WARNING")})
+  
+  setwd(current_wd)
+  
+  if(out_command!="WARNING"){
+    if( file.exists(paste0(resultloc,"/",gsub(".txt","",basename(matrixloc)),"_1_CCC_BICLUSTERS_SORTED_PVALUE.txt"))){
+      out <- eCCCext2biclust(loc=resultloc,matrixloc=matrixloc,nRows=nrow(matrix),row_names=rownames(matrix),col_names=colnames(matrix),nCols=ncol(matrix),call=call)
+    }else{
+      warning("e-CCC Extended Algorithm did not succeed!")
+      
+      out <- new("Biclust",Parameters=list(Call=call,Method="eCCC_ext"),
+                 RowxNumber=matrix(FALSE,nrow=nrow(matrix),ncol=1,dimnames=list(rownames(matrix),NULL)),
+                 NumberxCol=matrix(FALSE,nrow=1,ncol=ncol(matrix),dimnames=list(NULL,colnames(matrix))),
+                 Number=0,
+                 info=list())
+    }
+    
+  }else{
+    if( file.exists(paste0(resultloc,"/",gsub(".txt","",basename(matrixloc)),"_1_CCC_BICLUSTERS_SORTED_PVALUE.txt"))){
+      warning("e-CCC Extended Algorithm may not have succeeded. Check if output is not the same as a previous run!")
+      out <- eCCCext2biclust(loc=resultloc,matrixloc=matrixloc,nRows=nrow(matrix),row_names=rownames(matrix),col_names=colnames(matrix),nCols=ncol(matrix),call=call)
+    }else{
+      warning("e-CCC Extended Algorithm did not succeed!")
+      out <- new("Biclust",Parameters=list(Call=call,Method="eCCC_ext"),
+                 RowxNumber=matrix(FALSE,nrow=nrow(matrix),ncol=1,dimnames=list(rownames(matrix),NULL)),
+                 NumberxCol=matrix(FALSE,nrow=1,ncol=ncol(matrix),dimnames=list(NULL,colnames(matrix))),
+                 Number=0,
+                 info=list())
+      
+    }
+  }
+  
+  return(out)
 }
+
+

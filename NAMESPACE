@@ -3,6 +3,7 @@
 export(CCC)
 export(CCC_disc)
 export(CCCinfo)
+export(eCCC)
 export(eCCC_ext)
 export(eCCCinfo)
 import(biclust)
