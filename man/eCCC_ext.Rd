@@ -44,7 +44,7 @@ PLACEHOLDER
 \examples{
 \dontrun{
 data(heatdata)
-out <- eCCC_ext(heatdata,minr=3,minc=2) 
+out <- eCCC_ext(heatdata,minr=3,minc=2,missings="jump",anticorrelation = TRUE)
 eCCCinfo(out,filter="Bonf0.01")
 out@info$eCCCpatterns$BC53[1:10,]
 }

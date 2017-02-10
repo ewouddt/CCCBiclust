@@ -29,8 +29,13 @@ data(heatdata)
 out1 <- CCC(heatdata)
 CCCinfo(out1,method="bonferroni",alpha=0.01)
 
-# e-CCC Extended #
+# e-CCC #
 out2 <- eCCC_ext(heatdata,minr=3,minc=2)
+eCCCinfo(out2,filter="Bonf0.01")
+out2@info$eCCCpatterns$BC53[1:10,]
+
+# e-CCC Extended #
+out2 <- eCCC_ext(heatdata,minr=3,minc=2,missings="jump",anticorrelation = TRUE)
 eCCCinfo(out2,filter="Bonf0.01")
 out2@info$eCCCpatterns$BC53[1:10,]
 ```
