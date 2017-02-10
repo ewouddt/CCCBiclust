@@ -24,7 +24,7 @@ PLACEHOLDER
 \dontrun{
 data(heatdata)
 out <- CCC(heatdata)
-info(out,method="bonferroni")
+CCCinfo(out,method="bonferroni")
 }
 }
 \author{

@@ -104,22 +104,30 @@ CCC_disc <- function(matrix,threshold=1){
 #' @param filter_overlap Filter Bicluster results based on overlap set in CCC algorithm.
 #' @author Ewoud De Troyer
 #' @return Returns a filtered and ordered CCCinfo (info slot of CCC result)
+#' @examples 
+#' \dontrun{
+#' data(heatdata)
+#' out <- CCC(heatdata)
+#' CCCinfo(out,method="bonferroni")
+#' }
 #' @export
-info <- function(resbic,method="none",alpha=0.01 ,filter_overlap=FALSE){
+CCCinfo <- function(resbic,method="none",alpha=0.01 ,filter_overlap=FALSE){
   
   if(class(resbic)!="Biclust"){stop("resbic is not a Biclust object")}
   if(resbic@Parameters$Method!="CCC"){stop("resbic is not a result from the CCC algorithm")}
   if(!("CCCinfo"%in%names(resbic@info))){stop("CCCinfo not available in info slot")}
 
   if(filter_overlap){
-    out <- resbic@info$CCCinfo[resbic@info$CCCinfo$filter_overlap,c(1,2)]
+    out <- resbic@info$CCCinfo[resbic@info$CCCinfo$filter_overlap,c(1:5)]
   }else{
-    out <- resbic@info$CCCinfo[,c(1,2)]
+    out <- resbic@info$CCCinfo[,c(1:5)]
   }
   
   out$adjusted_pvalues <- p.adjust(out$pvalues,method)
   out <- out[which(out$adjusted_pvalues<=alpha),]
   out <- out[order(out$pvalues),]
+  
+  out <- out[,c("patterns","pvalues","adjusted_pvalues","nGenes","nConditions","from_to_cond")]
   
   if(method=="none"){out <- out[,-3]}
   
@@ -128,8 +136,42 @@ info <- function(resbic,method="none",alpha=0.01 ,filter_overlap=FALSE){
 }
 
 
-# sum(p.adjust(out@info$CCCinfo$pvalues[out@info$CCCinfo$filter],"bonferroni")<=0.01)
-
+#' @title Filter eCCCinfo in info slot of eCCC Result
+#' @description Reorders eCCCinfo slot based on the p-values order and applies one of the 2 available filters.
+#' @param resbic Result from eCCC.
+#' @param filter Choose one of the following filters: \code{"none", "Bonf0.01","Bonf0.01_overlap"}. Respectively no biclusters are filtered, significant biclusters with under 1 percent after Bonferroni correction are filtered and biclusters after Bonferroni (1 percent) with taking the maximum overlap into account are filtered.
+#' @author Ewoud De Troyer
+#' @return Returns a filtered and ordered eCCCinfo (info slot of eCCC result)
+#' @examples 
+#' \dontrun{
+#' data(heatdata)
+#' out <- eCCC_ext(heatdata,minr=3,minc=2)
+#' eCCCinfo(out,filter="Bonf0.01_overlap")
+#' }
+#' @export
+eCCCinfo <- function(resbic,filter="none"){
+  if(class(resbic)!="Biclust"){stop("resbic is not a Biclust object")}
+  if((resbic@Parameters$Method!="eCCC")&(resbic@Parameters$Method!="eCCC_ext")){stop("resbic is not a result from the e-CCC algorithm")}
+  if(!("eCCCinfo"%in%names(resbic@info))){stop("eCCCinfo not available in info slot")}
+  if(!(filter %in% c("none","Bonf0.01","Bonf0.01_overlap"))){stop("filter needs to be \"none\", \"Bonf0.01\" or \"Bonf0.01_overlap\"")}
+  
+  
+  out <- resbic@info$eCCCinfo
+  out <- out[order(out$pvalues_order),]
+  if(filter!="none"){
+    if(filter=="Bonf0.01"){
+      out <- out[out$filter_Bonf0.01,]
+      cat(nrow(out),"significant biclusters were discovered.\n\n")
+    }else if(filter=="Bonf0.01_overlap"){
+      out <- out[out$filter_Bonf0.01_overlap,]
+      cat(nrow(out),"significant biclusters were discovered.\n\n")
+    }
+  }
+  
+  out <- out[,c(1,3,4,5),drop=FALSE]
+  
+  return(out)
+}
 
 
 ## TO DO:

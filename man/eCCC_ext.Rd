@@ -44,8 +44,7 @@ PLACEHOLDER
 \examples{
 \dontrun{
 data(heatdata)
-out <- CCC(heatdata)
-info(out,method="bonferroni")
+out <- eCCC_ext(heatdata,minr=3,minc=2) 
 }
 }
 \author{

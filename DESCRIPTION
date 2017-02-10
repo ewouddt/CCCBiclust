@@ -1,8 +1,8 @@
 Package: CCCBiclust
 Type: Package
 Title: R Wrapper for Java Implementation of CCC and e-CC biclustering algorithm
-Version: 0.1.0
-Date: 2017-02-07
+Version: 0.1.1
+Date: 2017-02-10
 Author: De Troyer Ewoud
 Maintainer: De Troyer Ewoud <ewoud.detroyer@uhasselt.be>
 Description: A simple R wrapper for the Java implementation of the CCC <DOI:

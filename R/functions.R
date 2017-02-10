@@ -1,3 +1,6 @@
+### TO DO: TRY LOWER MINR/MINC for eCCC!!
+### Add ngenes & nconditions to CCCinfo + adapt info functions
+
 
 
 #' @title The CCC Algorithm
@@ -18,7 +21,7 @@
 #' \dontrun{
 #' data(heatdata)
 #' out <- CCC(heatdata)
-#' info(out,method="bonferroni")
+#' CCCinfo(out,method="bonferroni")
 #' }
 CCC <- function(matrix,overlap=0.1){
   call <- match.call()
@@ -111,7 +114,9 @@ CCC2biclust <- function(loc="",nRows,nCols,row_names,col_names,call){
     pvalues <- 1:nBC
     patterns <- rep("",nBC)
     filter <- rep(FALSE,nBC)
-    names(pvalues) <- names(patterns) <- names(filter) <- paste0("BC",1:nBC)
+    nGenes <- nConditions <- 1:nBC
+    from_to_cond <- rep("",nBC)
+    names(pvalues) <- names(patterns) <- names(filter) <- names(nGenes) <- names(nConditions) <- names(from_to_cond) <- paste0("BC",1:nBC)
     
     RowxNumber <- matrix(FALSE,nrow=nRows,ncol=nBC,dimnames=list(row_names,NULL))
     NumberxCol <- matrix(FALSE,nrow=nBC,ncol=nCols,dimnames=list(NULL,col_names))
@@ -121,15 +126,18 @@ CCC2biclust <- function(loc="",nRows,nCols,row_names,col_names,call){
       info <- strsplit(names(info_index)[i],"\t")[[1]]
       BC <- as.numeric(strsplit(info[1],"_")[[1]][2])
       ngenes <- as.numeric(strsplit(info[4],"=")[[1]][2])
+      nGenes[BC] <- ngenes 
       pvalues[BC] <- as.numeric(strsplit(info[5],"=")[[1]][2])
       
       genenames <- sapply(CCC_lines[(info_index[i]+1):(info_index[i]+ngenes)],FUN=function(x){strsplit(x,"\t")[[1]][1]})
       names(genenames) <- NULL
       RowxNumber[unlist(sapply(genenames,FUN=function(x){return(which(x==row_names))})),BC] <- TRUE
       
+      from_to_cond[BC] <- strsplit(info[3],"= ")[[1]][2]
       cond_temp <- as.numeric(strsplit(strsplit(info[3],"=")[[1]][2],"-")[[1]])
       NumberxCol[BC,(cond_temp[1]:cond_temp[2])] <- TRUE
       
+      nConditions[BC] <- length(cond_temp[1]:cond_temp[2])
       patterns[BC] <- strsplit(CCC_lines[info_index[i]+1],"\t")[[1]][2]
       
     }
@@ -154,8 +162,12 @@ CCC2biclust <- function(loc="",nRows,nCols,row_names,col_names,call){
     
     CCCinfo_temp <- data.frame(patterns=patterns,
                                pvalues=pvalues,
+                               nGenes=nGenes,
+                               nConditions=nConditions,
+                               from_to_cond=from_to_cond,
                                filter_overlap=filter)
     CCCinfo_temp$patterns <- as.character(CCCinfo_temp$patterns)
+    CCCinfo_temp$from_to_cond <- as.character(CCCinfo_temp$from_to_cond)
     
     result <- new("Biclust",Parameters=list(Call=call,Method="CCC"),
                   RowxNumber=RowxNumber,
@@ -213,8 +225,7 @@ CCC2biclust <- function(loc="",nRows,nCols,row_names,col_names,call){
 #' @examples 
 #' \dontrun{
 #' data(heatdata)
-#' out <- CCC(heatdata)
-#' info(out,method="bonferroni")
+#' out <- eCCC_ext(heatdata,minr=3,minc=2) 
 #' }
 eCCC_ext <- function(matrix,minr=1,minc=1,maxErrors=1,overlap=0.1,missings="allow",anticorrelation=FALSE,restrictedErrors=FALSE){
   call <- match.call()
@@ -333,7 +344,9 @@ eCCCext2biclust <- function(loc="",matrixloc,nRows,nCols,row_names,col_names,cal
     patterns <- rep("",nBC)
     filter_Bonf0.01 <- filter_Bonf0.01_overlap <- rep(FALSE,nBC)
     eCCCpatterns <- vector("list",nBC)
-    names(pvalues_order) <- names(patterns) <- names(filter_Bonf0.01) <- names(filter_Bonf0.01_overlap) <- names(eCCCpatterns) <- paste0("BC",1:nBC)
+    nGenes <- nConditions <- 1:nBC
+    from_to_cond <- rep("",nBC)
+    names(nGenes) <- names(nConditions) <- names(from_to_cond) <- names(pvalues_order) <- names(patterns) <- names(filter_Bonf0.01) <- names(filter_Bonf0.01_overlap) <- names(eCCCpatterns) <- paste0("BC",1:nBC)
     
     
     RowxNumber <- matrix(FALSE,nrow=nRows,ncol=nBC,dimnames=list(row_names,NULL))
@@ -344,6 +357,7 @@ eCCCext2biclust <- function(loc="",matrixloc,nRows,nCols,row_names,col_names,cal
       info <- strsplit(names(info_index)[i],"\t")[[1]]
       BC <- as.numeric(strsplit(info[1],"_")[[1]][2])
       ngenes <- as.numeric(strsplit(info[4],"=")[[1]][2])
+      nGenes[BC] <- ngenes
       pvalues_order[BC] <- i
       patterns[BC] <- (strsplit(info[5],"=")[[1]][2])
       
@@ -363,7 +377,9 @@ eCCCext2biclust <- function(loc="",matrixloc,nRows,nCols,row_names,col_names,cal
       
       RowxNumber[df_temp$Index,BC] <- TRUE
       
+      from_to_cond[BC] <- strsplit(info[3],"= ")[[1]][2]
       cond_temp <- as.numeric(strsplit(strsplit(info[3],"=")[[1]][2],"-")[[1]])
+      nConditions[BC] <- length(cond_temp[1]:cond_temp[2])
       NumberxCol[BC,(cond_temp[1]:cond_temp[2])] <- TRUE
       
       eCCCpatterns[[BC]] <- df_temp
@@ -422,9 +438,13 @@ eCCCext2biclust <- function(loc="",matrixloc,nRows,nCols,row_names,col_names,cal
     
     eCCCinfo_temp <- data.frame(patterns=patterns,
                                pvalues_order=pvalues_order,
+                               nGenes=nGenes,
+                               nConditions=nConditions,
+                               from_to_cond=from_to_cond,
                                filter_Bonf0.01=filter_Bonf0.01,
                                filter_Bonf0.01_overlap=filter_Bonf0.01_overlap)
     eCCCinfo_temp$patterns <- as.character(eCCCinfo_temp$patterns)
+    eCCCinfo_temp$from_to_cond <- as.character(eCCCinfo_temp$from_to_cond)
     
     result <- new("Biclust",Parameters=list(Call=call,Method="eCCC_ext"),
                   RowxNumber=RowxNumber,
@@ -450,3 +470,10 @@ eCCCext2biclust <- function(loc="",matrixloc,nRows,nCols,row_names,col_names,cal
   
 }
 
+
+
+
+eCCC <- function(matrix,minr=1,minc=1,maxErrors=1,overlap=0.1){
+  
+  
+}
