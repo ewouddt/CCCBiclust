@@ -116,6 +116,7 @@ CCCinfo <- function(resbic,method="none",alpha=0.01 ,filter_overlap=FALSE){
   if(class(resbic)!="Biclust"){stop("resbic is not a Biclust object")}
   if(resbic@Parameters$Method!="CCC"){stop("resbic is not a result from the CCC algorithm")}
   if(!("CCCinfo"%in%names(resbic@info))){stop("CCCinfo not available in info slot")}
+  if(!(method %in% c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"))){stop("Incorrect method. Should be one of the following : \"holm\", \"hochberg\", \"hommel\", \"bonferroni\", \"BH\", \"BY\", \"fdr\", \"none\"")}
 
   if(filter_overlap){
     out <- resbic@info$CCCinfo[resbic@info$CCCinfo$filter_overlap,c(1:5)]

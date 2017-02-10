@@ -17,3 +17,20 @@ Should the installation of `CCCBiclust` or `devtools::install_github("hadley/dev
 install.packages(c("flexclust","biclust"))
 devtools::install_github("ewouddt/CCCBiclust")
 ```
+
+Examples
+--------
+
+``` r
+library(CCCBiclust)
+data(heatdata)
+
+# CCC #
+out1 <- CCC(heatdata)
+CCCinfo(out1,method="bonferroni",alpha=0.01)
+
+# e-CCC Extended #
+out2 <- eCCC_ext(heatdata,minr=3,minc=2)
+eCCCinfo(out2,filter="Bonf0.01")
+out2@info$eCCCpatterns$BC53[1:10,]
+```
